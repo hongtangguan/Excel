@@ -4,11 +4,10 @@ import com.excel.service.ExcelService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import javax.servlet.http.HttpServletResponse;
 
 
 @Api(value = "/test/", tags = "excel导出导入测试")
@@ -31,5 +30,15 @@ public class ExcelController {
         }
         return  a;
     }
+
+
+
+    @RequestMapping(value = "/excel", method = RequestMethod.GET)
+    @ApiOperation(value = "导出到excel")//,produces="application/octet-stream"
+    public boolean excel(HttpServletResponse response) throws Exception {
+        return testService.exportExcel(response);
+
+    }
+
 
 }

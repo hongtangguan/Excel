@@ -4,17 +4,22 @@ package com.excel.service;
 import com.excel.common.MyException;
 import com.excel.mapper.UserMapper;
 import com.excel.model.User;
+import com.excel.utils.ExcelData;
+import com.excel.utils.ExportExcelUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
@@ -23,6 +28,8 @@ import java.util.List;
 @Service
 @Transactional(readOnly = true)
 public class ExcelServiceImpl implements ExcelService {
+
+    private Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
     private UserMapper userMapper;
@@ -49,10 +56,16 @@ public class ExcelServiceImpl implements ExcelService {
         } else {
             wb = new XSSFWorkbook(is);
         }
+
         Sheet sheet = wb.getSheetAt(0);
         if(sheet!=null){
             notNull = true;
         }
+
+        int lastRowNum = sheet.getLastRowNum();
+        System.out.println(lastRowNum+"    ...........................");
+
+
         User user;
         //这里从第二行开始, 第一行是标题
         for (int r = 1; r <= sheet.getLastRowNum(); r++) {
@@ -61,6 +74,9 @@ public class ExcelServiceImpl implements ExcelService {
             if (row == null){
                 continue;
             }
+
+            int defaultColumnWidth = sheet.getDefaultColumnWidth();
+            System.out.println("defaultColumnWidth...................."+defaultColumnWidth);
 
             user = new User();
 
@@ -118,5 +134,48 @@ public class ExcelServiceImpl implements ExcelService {
             }
         }
         return notNull;
+    }
+
+    @Override
+    public boolean exportExcel(HttpServletResponse response) {
+
+        logger.info("导出excel开始...............................");
+        ExcelData data = new ExcelData();
+        data.setName("users");
+        //标题
+        List<String> titles = new ArrayList();
+        titles.add("姓名");
+        titles.add("电话");
+        titles.add("地址");
+        titles.add("注册日期");
+        titles.add("备注");
+        data.setTitles(titles);
+
+        List<User> allJobs = userMapper.getAllUsers();
+        logger.info("总行数:" + allJobs.size());
+        List<List<Object>> rows = new ArrayList();
+
+        for (int i = 0; i < allJobs.size(); i++) {
+            List<Object> row = new ArrayList();
+            row.add(allJobs.get(i).getName());
+            row.add(allJobs.get(i).getPhone());
+            row.add(allJobs.get(i).getAddress());
+            row.add(allJobs.get(i).getEnrolDate());
+            row.add(allJobs.get(i).getDes());
+            rows.add(row);
+        }
+        data.setRows(rows);
+
+        try {
+            ExportExcelUtils.exportExcel(response, "users.xlsx", data);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        logger.info("导出完成................");
+
+        return true;
+
     }
 }

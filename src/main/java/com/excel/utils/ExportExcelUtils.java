@@ -7,24 +7,41 @@ import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.poi.xssf.usermodel.extensions.XSSFCellBorder.BorderSide;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletResponse;
 import java.awt.Color;
+import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.List;
 
 public class ExportExcelUtils {
 
-    public static void exportExcel(HttpServletResponse response, String fileName, ExcelData data) throws Exception {
+    private static Logger logger = LoggerFactory.getLogger(ExportExcelUtils.class);
+
+    public static void exportExcel(HttpServletResponse response, String fileName, ExcelData data) {
+
         // 告诉浏览器用什么软件可以打开此文件
         response.setHeader("content-Type", "application/vnd.ms-excel");
         // 下载文件的默认名称
-        response.setHeader("Content-Disposition", "attachment;filename="+ URLEncoder.encode(fileName, "utf-8"));
-        exportExcel(data, response.getOutputStream());
+        try {
+            response.setHeader("Content-Disposition", "attachment;filename="+ URLEncoder.encode(fileName, "utf-8"));
+        } catch (UnsupportedEncodingException e) {
+            logger.error("111111111111111111111111111111");
+            e.printStackTrace();
+        }
+        try {
+            exportExcel(data, response.getOutputStream());
+        } catch (Exception e) {
+            logger.error("222222222222222222222222222222222");
+            e.printStackTrace();
+        }
     }
 
-    public static void exportExcel(ExcelData data, OutputStream out) throws Exception {
+    public static void exportExcel(ExcelData data, OutputStream out)  {
 
         XSSFWorkbook wb = new XSSFWorkbook();
 
@@ -36,8 +53,14 @@ public class ExportExcelUtils {
             XSSFSheet sheet = wb.createSheet(sheetName);
             writeExcel(wb, sheet, data);
 
-            wb.write(out);
+            try {
+                wb.write(out);
+            } catch (IOException e) {
+                logger.error("33333333333333333333333333333333");
+                e.printStackTrace();
+            }
         } finally {
+
             //wb.close();
         }
     }

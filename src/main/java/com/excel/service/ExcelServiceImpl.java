@@ -166,8 +166,8 @@ public class ExcelServiceImpl implements ExcelService {
         }
         data.setRows(rows);
 
+        ExportExcelUtils.exportExcel(response, "users.xlsx", data);
         try {
-            ExportExcelUtils.exportExcel(response, "users.xlsx", data);
         } catch (Exception e) {
             e.printStackTrace();
             return false;
